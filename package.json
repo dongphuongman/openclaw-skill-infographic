@@ -1,6 +1,6 @@
 {
   "name": "openclaw-skill-infographic",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "An OpenClaw skill to generate professional high-density infographics and posters via 9Router",
   "main": "image-generator.js",
   "scripts": {
