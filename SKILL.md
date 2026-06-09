@@ -2,6 +2,20 @@
 name: infographic-generator
 description: Tạo ảnh infographic, banner hoặc poster trực tiếp bằng 1 prompt gửi tới API tạo ảnh qua 9Router.
 ---
+## 📋 0. QUY TRÌNH XÁC NHẬN THÔNG TIN BẮT BUỘC (MANDATORY)
+
+Khi người dùng yêu cầu tạo ảnh, **bắt buộc** phải có đầy đủ các thông tin rõ ràng dưới đây. Nếu người dùng đưa ra yêu cầu chung chung hoặc thiếu bất kỳ yếu tố nào, bạn **phải hỏi lại để làm rõ** trước khi tiến hành tạo ảnh:
+
+*   **Tiêu đề / Chủ đề chính**: Tiêu đề tiếng Việt cần viết lên ảnh (Ví dụ: *“10 điều nên làm vào mỗi buổi sáng”*).
+*   **Nội dung chi tiết các mục**: Các ý nội dung để đưa vào các ô/phần của ảnh. (Lưu ý: Bạn có thể tự tìm kiếm thông tin qua web-search hoặc tự diễn giải chi tiết dựa trên chủ đề nếu người dùng đồng ý, nhưng cần xác nhận rõ).
+*   **Phong cách thiết kế**: Chọn một trong các phong cách chính (Tin tức báo chí, Cẩm nang hoạt hình 2D, hay Layout Neo-Brutalism).
+*   **Tỷ lệ khung hình / Layout**: (Ví dụ: Hình vuông 1:1, Poster dọc 2:3, hay Banner ngang 16:9).
+*   **Dòng Footer**: Dòng chữ bản quyền ở cạnh dưới (Ví dụ: *“designed by Williams - trợ lý của tuanminhhole”*).
+
+> [!IMPORTANT]
+> **Tuyệt đối không tự tiện tạo ảnh khi chưa rõ các yếu tố trên.** Hãy phản hồi lịch sự, liệt kê các yếu tố còn thiếu và đưa ra các tùy chọn/ví dụ gợi ý để người dùng chọn nhanh.
+
+---
 
 Khi người dùng yêu cầu tạo ảnh infographic, tin tức, cẩm nang, hoặc poster bằng tiếng Việt, hãy sử dụng skill này để gọi trực tiếp API tạo ảnh qua script `image-generator.js`. Phương pháp này tạo ra các tác phẩm thiết kế đồng nhất và tuyệt đẹp chỉ bằng một câu prompt chi tiết duy nhất.
 

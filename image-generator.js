@@ -54,7 +54,13 @@ const modelPriorityPatterns = [
     /ideogram/i,
     /runway.*turbo/i,
     /runway/i,
+    /flux-2-dev/i,
+    /flux-2-klein-9b/i,
+    /flux-2-klein-4b/i,
     /flux-?(1-)?dev/i,
+    /phoenix-1\.0/i,
+    /phoenix/i,
+    /lucid-origin/i,
     /dall-e-3/i,
     /stable-image-ultra/i,
     /sd3\.5-large-turbo/i,
@@ -66,6 +72,7 @@ const modelPriorityPatterns = [
     /sd3/i,
     /sd3\.5-medium/i,
     /flux-?(1-)?schnell/i,
+    /dreamshaper/i,
     /grok/i,
     /gpt/i,
     /minimax/i,
@@ -73,6 +80,8 @@ const modelPriorityPatterns = [
     /gemini-3/i,
     /gemini-2\.5/i,
     /gemini/i,
+    /stable-diffusion-xl-lightning/i,
+    /stable-diffusion-xl-base/i,
     /sdxl/i,
     /stable-diffusion/i,
     /sdwebui/i,
@@ -91,7 +100,9 @@ const modelPriorityPatterns = [
             });
             const modelsData = await modelsResponse.json();
             if (modelsData && Array.isArray(modelsData.data) && modelsData.data.length > 0) {
-                const modelIds = modelsData.data.map(m => m.id);
+                const modelIds = modelsData.data
+                    .map(m => m.id)
+                    .filter(id => !/img2img|inpainting|controlnet|edit|upscale|refiner/i.test(id));
                 for (const pattern of modelPriorityPatterns) {
                     const found = modelIds.find(id => pattern.test(id));
                     if (found) {
@@ -99,7 +110,7 @@ const modelPriorityPatterns = [
                         break;
                     }
                 }
-                if (!selectedModel) {
+                if (!selectedModel && modelIds.length > 0) {
                     selectedModel = modelIds[0];
                 }
             }
