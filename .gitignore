@@ -2,5 +2,6 @@ node_modules/
 *.png
 *.jpg
 *.jpeg
+*.html
 *.log
 .DS_Store
