@@ -17,8 +17,6 @@
 
 ## 1.1.0 (2026-07-25)
 
-Fork by [dongphuongman](https://github.com/dongphuongman) from [tuanminhhole/openclaw-skill-infographic](https://github.com/tuanminhhole/openclaw-skill-infographic).
-
 ### Added
 - **Chat integration**: SKILL.md now instructs the agent to send the generated image via `message(action="send")` after generation.
 - **Public URL upload**: Optional upload to Cloudflare R2 or ImgBB via `IMAGE_UPLOAD_PROVIDER` env var. Graceful degradation on failure.
