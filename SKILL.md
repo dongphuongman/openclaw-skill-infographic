@@ -90,13 +90,17 @@ Hãy chọn 1 trong 3 phong cách dưới đây tùy thuộc vào ngữ cảnh y
 
 ## 🔤 5. QUY TẮC PHÒNG TRÁNH LỖI FONT TIẾNG VIỆT
 
-Mô hình tạo ảnh hỗ trợ ghi text tiếng Việt cực tốt, nhưng để tránh việc AI tự động dùng các font chữ lạ bị lỗi hiển thị dấu tiếng Việt, hãy áp dụng nghiêm ngặt các quy tắc sau:
+Mô hình tạo ảnh có thể ghi text tiếng Việt, nhưng **không đảm bảo đúng dấu 100%**. Các quy tắc dưới đây giúp **nâng tỉ lệ** render đúng — không loại bỏ hoàn toàn lỗi:
 
-1. **Chỉ định phông chữ tiêu chuẩn**: Trong prompt, ghi rõ tên các font chữ phổ biến hỗ trợ Unicode tiếng Việt tốt như: **Arial, Inter, Montserrat, Roboto, Plus Jakarta Sans, Fredoka** (chỉ dùng cho phong cách hoạt hình).
+1. **Tiêu đề ngắn gọn (3–5 từ)**: Tiêu đề càng dài, tỉ lệ sai dấu càng cao. Ưu tiên rút gọn, ví dụ: *"Bí Kíp Tránh Nóng"* thay vì *"Bí Kíp Tránh Nóng Trong Mùa Hè Năm Nay"*.
+2. **Viết HOA tiêu đề chính**: Chữ in hoa có nhiều khoảng trống hơn cho dấu, giảm lỗi clipping. Ví dụ: `'BÍ KÍP TRÁNH NÓNG'` thay vì `'bí kíp tránh nóng'`.
+3. **Giới hạn nhãn mỗi ô (2–4 từ)**: Mỗi card/section chỉ nên có nhãn ngắn. Nội dung dài nên mô tả bằng hình minh họa thay vì text.
+4. **Chỉ định phông chữ tiêu chuẩn**: Ghi rõ font hỗ trợ Unicode tiếng Việt: **Arial, Inter, Montserrat, Roboto, Plus Jakarta Sans, Fredoka** (chỉ cho phong cách hoạt hình).
    _Ví dụ: "in clean bold Arial font", "using modern Montserrat typeface"._
-2. **Tránh phông chữ lạ**: Tuyệt đối **KHÔNG** sử dụng các từ khóa như `decorative, script, handwritten, gothic, calligraphy, futuristic fonts` vì chúng hầu như không hỗ trợ tiếng Việt và sẽ tạo ra chữ lỗi phông rất xấu.
-3. **Định dạng Text rõ ràng**: Đặt toàn bộ các đoạn text tiếng Việt cần hiển thị trong dấu nháy đơn hoặc nháy kép để mô hình nhận diện chính xác phần văn bản cần viết.
-   _Ví dụ: At the top, the main title in bold Arial font reads: 'BÍ KÍP TRÁNH NÓNG MÙA HÈ'._
+5. **Tránh phông chữ lạ**: Tuyệt đối **KHÔNG** dùng `decorative, script, handwritten, gothic, calligraphy, futuristic fonts` — hầu như không hỗ trợ tiếng Việt.
+6. **Định dạng text rõ ràng**: Đặt text tiếng Việt trong nháy đơn và thêm cụm **"exactly as written, preserving all Vietnamese diacritical marks"** ngay sau.
+   _Ví dụ: The main title in bold Arial font reads: 'BÍ KÍP TRÁNH NÓNG' exactly as written, preserving all Vietnamese diacritical marks._
+7. **Xử lý khi dấu sai**: Nếu ảnh sinh ra bị sai dấu, hãy **chủ động đề xuất tạo lại** (chạy script lần nữa). Không cần người dùng yêu cầu — chất lượng text là ưu tiên.
 
 ---
 
@@ -107,10 +111,10 @@ Mô hình tạo ảnh hỗ trợ ghi text tiếng Việt cực tốt, nhưng đ�
 ```text
 An infographic poster with [Tỷ lệ khung hình] and [Loại nền].
 Art style is modern illustration style mixed with hand-drawn elements.
-At the top, the main title in clean bold [Tên Font tiếng Việt chuẩn] reads: '[TIÊU ĐỀ TIẾNG VIỆT LỚN]'.
+At the top, the main title in clean bold [Tên Font tiếng Việt chuẩn] reads: '[TIÊU ĐỀ VIẾT HOA, 3-5 TỪ]' exactly as written, preserving all Vietnamese diacritical marks.
 The layout is divided into [Số lượng] cards or sections [Bố cục chia ô từ trên xuống dưới / Bố cục ô lưới / Quy trình cách thức].
 The background and accent colors of the cards are [Màu sắc hài hòa tương ứng phù hợp với chủ đề].
-Each card contains a clean flat vector illustration representing [Mô tả ngắn gọn hình vẽ minh họa] and a clear text label in bold [Tên Font tiếng Việt chuẩn] reads: '[NHÃN TIẾNG VIỆT CHO TỪNG Ô]'.
-The text throughout the image must be clean, legible, and easy to read.
+Each card contains a clean flat vector illustration representing [Mô tả ngắn gọn hình vẽ minh họa] and a short text label (2-4 words) in bold [Tên Font tiếng Việt chuẩn] reads: '[NHÃN NGẮN]' exactly as written, preserving all Vietnamese diacritical marks.
+The text throughout the image must be clean, legible, and easy to read. All Vietnamese text must be rendered with correct diacritical marks.
 High-resolution, high quality, professional infographic poster, no spelling mistakes.
 ```
