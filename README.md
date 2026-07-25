@@ -275,9 +275,3 @@ See section 5 of [SKILL.md](SKILL.md) for the complete ruleset.
 ## 📄 License
 
 This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
-
-<div align="center">
-
-Originally made by [tuanminhhole](https://github.com/tuanminhhole) · Fork maintained by [dongphuongman](https://github.com/dongphuongman)
-
-</div>
