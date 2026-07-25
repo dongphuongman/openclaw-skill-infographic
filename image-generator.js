@@ -167,6 +167,33 @@ async function uploadToR2(filePath, fileName) {
     return `${publicUrl}/${objectKey}`;
 }
 
+async function uploadToImgBB(filePath) {
+    const apiKey = process.env.IMGBB_API_KEY;
+    if (!apiKey) {
+        throw new Error('Missing IMGBB_API_KEY');
+    }
+
+    const imageData = fs.readFileSync(filePath).toString('base64');
+    const params = new URLSearchParams();
+    params.append('key', apiKey);
+    params.append('image', imageData);
+
+    const expiration = process.env.IMGBB_EXPIRATION;
+    if (expiration) params.append('expiration', expiration);
+
+    const res = await fetch('https://api.imgbb.com/1/upload', {
+        method: 'POST',
+        body: params,
+    });
+
+    const json = await res.json();
+    if (!json.success) {
+        throw new Error(`ImgBB ${json.status_code || res.status}: ${json.error?.message || JSON.stringify(json.error)}`);
+    }
+
+    return json.data.display_url;
+}
+
 (async () => {
     try {
         // Query active image generation models to choose the best one
@@ -227,13 +254,21 @@ async function uploadToR2(filePath, fileName) {
             fs.writeFileSync(absoluteOutputPath, buf);
             console.log(`[ImageGen] Saved image to: ${absoluteOutputPath}`);
 
-            // R2 upload (opt-in, graceful degradation)
-            if (process.env.R2_UPLOAD_ENABLED === 'true') {
+            // Upload to public host (opt-in, graceful degradation)
+            const uploadProvider = (process.env.IMAGE_UPLOAD_PROVIDER || '').toLowerCase();
+            if (uploadProvider) {
                 try {
-                    const publicUrl = await uploadToR2(absoluteOutputPath, path.basename(outputPath));
-                    console.log(`[ImageGen] Public URL: ${publicUrl}`);
+                    let url;
+                    if (uploadProvider === 'r2') {
+                        url = await uploadToR2(absoluteOutputPath, path.basename(outputPath));
+                    } else if (uploadProvider === 'imgbb') {
+                        url = await uploadToImgBB(absoluteOutputPath);
+                    } else {
+                        throw new Error(`Unknown upload provider: ${uploadProvider}`);
+                    }
+                    console.log(`[ImageGen] Public URL: ${url}`);
                 } catch (uploadErr) {
-                    console.warn(`[ImageGen] R2 upload failed (image saved locally): ${uploadErr.message}`);
+                    console.warn(`[ImageGen] Upload failed (image saved locally): ${uploadErr.message}`);
                 }
             }
         } else {
