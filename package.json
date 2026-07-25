@@ -1,10 +1,10 @@
 {
   "name": "dongphuongman-openclaw-skill-infographic",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "An OpenClaw skill to generate professional high-density infographics and posters via 9Router",
   "main": "image-generator.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 0"
+    "test": "node --test tests/*.test.js"
   },
   "keywords": [
     "openclaw",

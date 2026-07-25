@@ -2,14 +2,6 @@ const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 
-const prompt = process.argv[2];
-const outputPath = process.argv[3] || 'image.png';
-
-if (!prompt) {
-    console.error('Usage: node image-generator.js "<prompt>" [output_path]');
-    process.exit(1);
-}
-
 // Find openclaw.json path dynamically by walking up
 let openclawJsonPath = '';
 let currentDir = process.cwd();
@@ -194,89 +186,81 @@ async function uploadToImgBB(filePath) {
     return json.data.display_url;
 }
 
-(async () => {
+async function generateImage(prompt, outputPath) {
+    let selectedModel = '';
     try {
-        // Query active image generation models to choose the best one
-        let selectedModel = '';
-        try {
-            const modelsResponse = await fetch(`${baseUrl}/models/image`, {
-                headers: {
-                    'Authorization': `Bearer ${apiKey}`
-                }
-            });
-            const modelsData = await modelsResponse.json();
-            if (modelsData && Array.isArray(modelsData.data) && modelsData.data.length > 0) {
-                const modelIds = modelsData.data
-                    .map(m => m.id)
-                    .filter(id => !/img2img|inpainting|controlnet|edit|upscale|refiner/i.test(id));
-                for (const pattern of modelPriorityPatterns) {
-                    const found = modelIds.find(id => pattern.test(id));
-                    if (found) {
-                        selectedModel = found;
-                        break;
-                    }
-                }
-                if (!selectedModel && modelIds.length > 0) {
-                    selectedModel = modelIds[0];
-                }
-            }
-        } catch (e) {
-            console.warn('[ImageGen] Failed to auto-resolve active models, using fallback:', e.message);
-        }
-
-        if (!selectedModel) {
-            selectedModel = 'gemini/gemini-3.1-flash-image-preview'; // default fallback
-        }
-
-        console.log(`[ImageGen] Generating: "${prompt}" using model "${selectedModel}"...`);
-        const response = await fetch(`${baseUrl}/images/generations`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${apiKey}`
-            },
-            body: JSON.stringify({
-                model: selectedModel,
-                prompt: prompt,
-                n: 1,
-                size: 'auto',
-                response_format: 'b64_json'
-            })
+        const modelsResponse = await fetch(`${baseUrl}/models/image`, {
+            headers: { 'Authorization': `Bearer ${apiKey}` }
         });
-        const data = await response.json();
-        if (data.error) {
-            console.error('[ImageGen] API Error:', data.error.message || data.error);
-            process.exit(1);
-        }
-        if (data.data && data.data[0] && data.data[0].b64_json) {
-            const buf = Buffer.from(data.data[0].b64_json, 'base64');
-            const absoluteOutputPath = path.isAbsolute(outputPath) ? outputPath : path.join(process.cwd(), outputPath);
-            fs.writeFileSync(absoluteOutputPath, buf);
-            console.log(`[ImageGen] Saved image to: ${absoluteOutputPath}`);
-
-            // Upload to public host (opt-in, graceful degradation)
-            const uploadProvider = (process.env.IMAGE_UPLOAD_PROVIDER || '').toLowerCase();
-            if (uploadProvider) {
-                try {
-                    let url;
-                    if (uploadProvider === 'r2') {
-                        url = await uploadToR2(absoluteOutputPath, path.basename(outputPath));
-                    } else if (uploadProvider === 'imgbb') {
-                        url = await uploadToImgBB(absoluteOutputPath);
-                    } else {
-                        throw new Error(`Unknown upload provider: ${uploadProvider}`);
-                    }
-                    console.log(`[ImageGen] Public URL: ${url}`);
-                } catch (uploadErr) {
-                    console.warn(`[ImageGen] Upload failed (image saved locally): ${uploadErr.message}`);
-                }
+        const modelsData = await modelsResponse.json();
+        if (modelsData && Array.isArray(modelsData.data) && modelsData.data.length > 0) {
+            const modelIds = modelsData.data
+                .map(m => m.id)
+                .filter(id => !/img2img|inpainting|controlnet|edit|upscale|refiner/i.test(id));
+            for (const pattern of modelPriorityPatterns) {
+                const found = modelIds.find(id => pattern.test(id));
+                if (found) { selectedModel = found; break; }
             }
-        } else {
-            console.error('[ImageGen] No image data returned');
-            process.exit(1);
+            if (!selectedModel && modelIds.length > 0) selectedModel = modelIds[0];
         }
     } catch (e) {
-        console.error('[ImageGen] Fetch Error:', e.message);
+        console.warn('[ImageGen] Failed to auto-resolve active models, using fallback:', e.message);
+    }
+
+    if (!selectedModel) selectedModel = 'gemini/gemini-3.1-flash-image-preview';
+
+    console.log(`[ImageGen] Generating: "${prompt}" using model "${selectedModel}"...`);
+    const response = await fetch(`${baseUrl}/images/generations`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${apiKey}`
+        },
+        body: JSON.stringify({
+            model: selectedModel, prompt, n: 1, size: 'auto', response_format: 'b64_json'
+        })
+    });
+    const data = await response.json();
+    if (data.error) throw new Error(data.error.message || JSON.stringify(data.error));
+    if (!data.data?.[0]?.b64_json) throw new Error('No image data returned');
+
+    const buf = Buffer.from(data.data[0].b64_json, 'base64');
+    const absoluteOutputPath = path.isAbsolute(outputPath) ? outputPath : path.join(process.cwd(), outputPath);
+    fs.writeFileSync(absoluteOutputPath, buf);
+    console.log(`[ImageGen] Saved image to: ${absoluteOutputPath}`);
+
+    const uploadProvider = (process.env.IMAGE_UPLOAD_PROVIDER || '').toLowerCase();
+    if (uploadProvider) {
+        try {
+            let url;
+            if (uploadProvider === 'r2') {
+                url = await uploadToR2(absoluteOutputPath, path.basename(outputPath));
+            } else if (uploadProvider === 'imgbb') {
+                url = await uploadToImgBB(absoluteOutputPath);
+            } else {
+                throw new Error(`Unknown upload provider: ${uploadProvider}`);
+            }
+            console.log(`[ImageGen] Public URL: ${url}`);
+        } catch (uploadErr) {
+            console.warn(`[ImageGen] Upload failed (image saved locally): ${uploadErr.message}`);
+        }
+    }
+
+    return absoluteOutputPath;
+}
+
+// --- CLI entry ---
+if (require.main === module) {
+    const prompt = process.argv[2];
+    const outputPath = process.argv[3] || 'image.png';
+    if (!prompt) {
+        console.error('Usage: node image-generator.js "<prompt>" [output_path]');
         process.exit(1);
     }
-})();
+    generateImage(prompt, outputPath).catch(e => {
+        console.error(`[ImageGen] Error: ${e.message}`);
+        process.exit(1);
+    });
+}
+
+module.exports = { generateImage, uploadToR2, uploadToImgBB, s3Hash, s3Hmac };
