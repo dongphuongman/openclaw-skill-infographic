@@ -1,5 +1,10 @@
 # 🦞 OpenClaw Skill: Infographic Generator
 
+> **Fork of [tuanminhhole/openclaw-skill-infographic](https://github.com/tuanminhhole/openclaw-skill-infographic)**
+> by [dongphuongman](https://github.com/dongphuongman).
+>
+> Changes: removed hardcoded footer, added MEDIA: output for OpenClaw chat integration, added optional public URL upload.
+
 A professional OpenClaw skill that enables AI agents to automatically design and generate high-quality infographics, newsletters, and posters in Vietnamese using the best available image generation models (Recraft v3, Flux Ultra, Ideogram, etc.) routed via **9Router**.
 
 ---
@@ -45,7 +50,7 @@ node skills/infographic-generator/image-generator.js "<english_prompt>" <output_
 ### Example
 
 ```bash
-node skills/infographic-generator/image-generator.js "An editorial news infographic in vertical poster format. At the top, a title reads 'CẨM NANG HƯỚNG DẪN'. Clean Montserrat font. Light pastel background. Designed by Williams - trợ lý của tuanminhhole" cẩm-nang.png
+node skills/infographic-generator/image-generator.js "An editorial news infographic in vertical poster format. At the top, a title reads 'CẨM NANG HƯỚNG DẪN'. Clean Montserrat font. Light pastel background." cẩm-nang.png
 ```
 
 ---
@@ -65,6 +70,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 <div align="center">
 
-Made with 🦞 by [tuanminhhole](https://github.com/tuanminhhole)
+Originally made by [tuanminhhole](https://github.com/tuanminhhole) · Fork maintained by [dongphuongman](https://github.com/dongphuongman)
 
 </div>

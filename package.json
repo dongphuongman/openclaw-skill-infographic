@@ -1,5 +1,5 @@
 {
-  "name": "openclaw-skill-infographic",
+  "name": "dongphuongman-openclaw-skill-infographic",
   "version": "1.0.1",
   "description": "An OpenClaw skill to generate professional high-density infographics and posters via 9Router",
   "main": "image-generator.js",
@@ -13,6 +13,6 @@
     "9router",
     "image-generation"
   ],
-  "author": "tuanminhhole",
+  "author": "dongphuongman",
   "license": "MIT"
 }

@@ -10,7 +10,7 @@ Khi người dùng yêu cầu tạo ảnh, **bắt buộc** phải có đầy đ
 *   **Nội dung chi tiết các mục**: Các ý nội dung để đưa vào các ô/phần của ảnh. (Lưu ý: Bạn có thể tự tìm kiếm thông tin qua web-search hoặc tự diễn giải chi tiết dựa trên chủ đề nếu người dùng đồng ý, nhưng cần xác nhận rõ).
 *   **Phong cách thiết kế**: Chọn một trong các phong cách chính (Tin tức báo chí, Cẩm nang hoạt hình 2D, hay Layout Neo-Brutalism).
 *   **Tỷ lệ khung hình / Layout**: (Ví dụ: Hình vuông 1:1, Poster dọc 2:3, hay Banner ngang 16:9).
-*   **Dòng Footer**: Dòng chữ bản quyền ở cạnh dưới (Ví dụ: *“designed by Williams - trợ lý của tuanminhhole”*).
+*   **Dòng Footer** (tùy chọn): Dòng chữ bản quyền ở cạnh dưới nếu người dùng muốn (Ví dụ: *”designed by TênBot”*).
 
 > [!IMPORTANT]
 > **Tuyệt đối không tự tiện tạo ảnh khi chưa rõ các yếu tố trên.** Hãy phản hồi lịch sự, liệt kê các yếu tố còn thiếu và đưa ra các tùy chọn/ví dụ gợi ý để người dùng chọn nhanh.
@@ -38,13 +38,13 @@ Khi gọi API, mặc định kích thước là tỷ lệ **1:1** (hình vuông)
 
 ---
 
-## ✍️ 3. QUY ĐỊNH FOOTER BẮT BUỘC
+## ✍️ 3. FOOTER (TÙY CHỌN)
 
-Mọi ảnh infographic/poster được tạo ra bằng skill này bắt buộc phải có dòng chữ bản quyền nằm ở cạnh dưới, canh giữa:
+Nếu người dùng muốn thêm dòng chữ bản quyền ở cạnh dưới ảnh, hãy thêm vào cuối prompt:
 
-- **Nội dung chữ bắt buộc**: `"designed by Williams - trợ lý của tuanminhhole"` (hoặc tên bot tương ứng đang chạy).
 - **Cách mô tả trong prompt**: Thêm vào cuối prompt mô tả chi tiết:
-  _"At the bottom center of the image, there is a clean and tiny centered footer text that reads: 'designed by Williams - trợ lý của tuanminhhole'"_
+  _"At the bottom center of the image, there is a clean and tiny centered footer text that reads: '[NỘI DUNG FOOTER CỦA NGƯỜI DÙNG]'"_
+- Nếu người dùng không yêu cầu footer, **bỏ qua** phần này.
 
 ---
 
@@ -99,6 +99,5 @@ The layout is divided into [Số lượng] cards or sections [Bố cục chia ô
 The background and accent colors of the cards are [Màu sắc hài hòa tương ứng phù hợp với chủ đề].
 Each card contains a clean flat vector illustration representing [Mô tả ngắn gọn hình vẽ minh họa] and a clear text label in bold [Tên Font tiếng Việt chuẩn] reads: '[NHÃN TIẾNG VIỆT CHO TỪNG Ô]'.
 The text throughout the image must be clean, legible, and easy to read.
-At the bottom center of the image, there is a clean and tiny centered footer text that reads: 'designed by Williams - trợ lý của tuanminhhole'.
 High-resolution, high quality, professional infographic poster, no spelling mistakes.
 ```
