@@ -4,7 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const os = require('os');
 
-const { s3Hash, s3Hmac, uploadToR2, uploadToImgBB, generateImage } = require('../image-generator.js');
+const { s3Hash, s3Hmac, uploadToR2, uploadToImgBB, generateImage, generateHtml } = require('../image-generator.js');
 
 const TINY_PNG = Buffer.from(
     'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
@@ -255,6 +255,74 @@ describe('uploadToImgBB missing config', () => {
 });
 
 // --- Generation success with mocked API ---
+
+// --- HTML template generation ---
+
+describe('generateHtml', () => {
+    it('food-guide template returns valid HTML', () => {
+        const html = generateHtml({
+            template: 'food-guide',
+            title: 'Test Title',
+            items: [{ name: 'Phở', emoji: '🍜', price: '50k', description: 'Noodle soup' }],
+        });
+        assert.ok(html.includes('<!DOCTYPE html>'));
+        assert.ok(html.includes('Test Title'));
+        assert.ok(html.includes('Noodle soup'));
+    });
+
+    it('list-cards template returns valid HTML', () => {
+        const html = generateHtml({
+            template: 'list-cards',
+            title: 'Top Items',
+            items: [{ name: 'Item 1', emoji: '✅' }, { name: 'Item 2' }],
+        });
+        assert.ok(html.includes('<!DOCTYPE html>'));
+        assert.ok(html.includes('Top Items'));
+        assert.ok(html.includes('Item 1'));
+        assert.ok(html.includes('Item 2'));
+    });
+
+    it('grid template returns valid HTML', () => {
+        const html = generateHtml({
+            template: 'grid',
+            title: 'Grid Test',
+            columns: 2,
+            items: [{ name: 'A', emoji: '🔥' }, { name: 'B' }, { name: 'C' }],
+        });
+        assert.ok(html.includes('<!DOCTYPE html>'));
+        assert.ok(html.includes('Grid Test'));
+        assert.ok(html.includes('repeat(2, 1fr)'));
+    });
+
+    it('timeline template returns valid HTML', () => {
+        const html = generateHtml({
+            template: 'timeline',
+            title: 'History',
+            items: [{ name: 'Step 1', description: 'First' }, { name: 'Step 2' }],
+        });
+        assert.ok(html.includes('<!DOCTYPE html>'));
+        assert.ok(html.includes('History'));
+        assert.ok(html.includes('Step 1'));
+    });
+
+    it('throws on unknown template', () => {
+        assert.throws(
+            () => generateHtml({ template: 'nonexistent', title: 'X', items: [] }),
+            /Unknown template "nonexistent"/
+        );
+    });
+
+    it('escapes HTML special characters', () => {
+        const html = generateHtml({
+            template: 'list-cards',
+            title: '<script>alert("xss")</script>',
+            items: [{ name: 'A & B "quoted"' }],
+        });
+        assert.ok(!html.includes('<script>alert'));
+        assert.ok(html.includes('&lt;script&gt;'));
+        assert.ok(html.includes('A &amp; B &quot;quoted&quot;'));
+    });
+});
 
 describe('generateImage success', () => {
     it('saves PNG and returns absolute path', async () => {

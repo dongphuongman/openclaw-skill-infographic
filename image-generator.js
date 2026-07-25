@@ -249,18 +249,95 @@ async function generateImage(prompt, outputPath) {
     return absoluteOutputPath;
 }
 
-// --- CLI entry ---
-if (require.main === module) {
-    const prompt = process.argv[2];
-    const outputPath = process.argv[3] || 'image.png';
-    if (!prompt) {
-        console.error('Usage: node image-generator.js "<prompt>" [output_path]');
-        process.exit(1);
+// --- HTML mode ---
+
+const { generateHtml } = require('./html-templates.js');
+
+async function generateFromHtml(jsonInput, outputPath) {
+    const data = typeof jsonInput === 'string' ? JSON.parse(jsonInput) : jsonInput;
+    const html = generateHtml(data);
+    const absoluteOutputPath = path.isAbsolute(outputPath) ? outputPath : path.join(process.cwd(), outputPath);
+    const htmlPath = absoluteOutputPath.replace(/\.png$/i, '.html');
+    fs.writeFileSync(htmlPath, html);
+    console.log(`[ImageGen] Saved HTML to: ${htmlPath}`);
+
+    let pngRendered = false;
+    try {
+        const puppeteer = require('puppeteer');
+        const browser = await puppeteer.launch({ headless: 'new', args: ['--no-sandbox'] });
+        const page = await browser.newPage();
+        await page.setViewport({ width: 800, height: 600 });
+        await page.setContent(html, { waitUntil: 'networkidle0' });
+        const bodyHandle = await page.$('body');
+        const box = await bodyHandle.boundingBox();
+        await page.setViewport({ width: 800, height: Math.ceil(box.height) });
+        await page.screenshot({ path: absoluteOutputPath, fullPage: true });
+        await browser.close();
+        console.log(`[ImageGen] Saved PNG to: ${absoluteOutputPath}`);
+        pngRendered = true;
+    } catch (e) {
+        if (e.code === 'MODULE_NOT_FOUND') {
+            console.log('[ImageGen] puppeteer not installed — skipping PNG render. Open the HTML file in a browser.');
+        } else {
+            console.warn(`[ImageGen] PNG render failed: ${e.message}`);
+        }
     }
-    generateImage(prompt, outputPath).catch(e => {
-        console.error(`[ImageGen] Error: ${e.message}`);
-        process.exit(1);
-    });
+
+    if (pngRendered) {
+        const uploadProvider = (process.env.IMAGE_UPLOAD_PROVIDER || '').toLowerCase();
+        if (uploadProvider) {
+            try {
+                let url;
+                if (uploadProvider === 'r2') {
+                    url = await uploadToR2(absoluteOutputPath, path.basename(outputPath));
+                } else if (uploadProvider === 'imgbb') {
+                    url = await uploadToImgBB(absoluteOutputPath);
+                } else {
+                    throw new Error(`Unknown upload provider: ${uploadProvider}`);
+                }
+                console.log(`[ImageGen] Public URL: ${url}`);
+            } catch (uploadErr) {
+                console.warn(`[ImageGen] Upload failed (image saved locally): ${uploadErr.message}`);
+            }
+        }
+    }
+
+    return pngRendered ? absoluteOutputPath : htmlPath;
 }
 
-module.exports = { generateImage, uploadToR2, uploadToImgBB, s3Hash, s3Hmac };
+// --- CLI entry ---
+if (require.main === module) {
+    const args = process.argv.slice(2);
+
+    if (args[0] === '--mode' && args[1] === 'html') {
+        const jsonInput = args[2];
+        const outputPath = args[3] || 'output.png';
+        if (!jsonInput) {
+            console.error('Usage: node image-generator.js --mode html \'<JSON>\' [output_path]');
+            console.error('       node image-generator.js --mode html data.json [output_path]');
+            process.exit(1);
+        }
+        let jsonData = jsonInput;
+        if (!jsonInput.startsWith('{') && fs.existsSync(jsonInput)) {
+            jsonData = fs.readFileSync(jsonInput, 'utf8');
+        }
+        generateFromHtml(jsonData, outputPath).catch(e => {
+            console.error(`[ImageGen] Error: ${e.message}`);
+            process.exit(1);
+        });
+    } else {
+        const prompt = args[0];
+        const outputPath = args[1] || 'image.png';
+        if (!prompt) {
+            console.error('Usage: node image-generator.js "<prompt>" [output_path]');
+            console.error('       node image-generator.js --mode html \'<JSON>\' [output_path]');
+            process.exit(1);
+        }
+        generateImage(prompt, outputPath).catch(e => {
+            console.error(`[ImageGen] Error: ${e.message}`);
+            process.exit(1);
+        });
+    }
+}
+
+module.exports = { generateImage, generateFromHtml, generateHtml, uploadToR2, uploadToImgBB, s3Hash, s3Hmac };

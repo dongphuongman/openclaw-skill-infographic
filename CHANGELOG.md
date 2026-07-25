@@ -1,5 +1,20 @@
 # Changelog
 
+## 1.2.0 (2026-07-25)
+
+### Added
+- **HTML template mode** (`--mode html`): Generate infographics from structured JSON data using 4 built-in templates (`food-guide`, `list-cards`, `grid`, `timeline`) with 4 color palettes (`warm`, `cool`, `pastel`, `bold`).
+- **`generateFromHtml()`** function: Programmatic API for HTML mode with optional Puppeteer PNG rendering.
+- **`generateHtml()`** re-exported from `image-generator.js` for convenience.
+- **SKILL.md section 6**: When to use AI vs HTML, JSON schema examples for each template, palette guide.
+- **6 new tests**: Template output validation, unknown template error, HTML escaping / XSS prevention.
+
+### Changed
+- CLI now accepts `--mode html '<JSON>' [output]` in addition to the original `"<prompt>" [output]` syntax.
+- `module.exports` now includes `generateFromHtml` and `generateHtml`.
+
+---
+
 ## 1.1.0 (2026-07-25)
 
 Fork by [dongphuongman](https://github.com/dongphuongman) from [tuanminhhole/openclaw-skill-infographic](https://github.com/tuanminhhole/openclaw-skill-infographic).

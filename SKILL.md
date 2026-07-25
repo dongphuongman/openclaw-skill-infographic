@@ -104,7 +104,111 @@ Mô hình tạo ảnh có thể ghi text tiếng Việt, nhưng **không đảm 
 
 ---
 
-## 📝 6. MẪU PROMPT CHUNG CHO BOT LLM (TÙY CHỈNH THEO YÊU CẦU)
+## 🖥️ 6. CHẾ ĐỘ HTML (--mode html)
+
+### Khi nào dùng AI vs HTML?
+
+| | AI (mặc định) | HTML (--mode html) |
+|---|---|---|
+| **Ưu điểm** | Hình minh họa phong phú, mascot, icon vẽ tay | Chữ tiếng Việt 100% chính xác, nhất quán, nhanh, miễn phí |
+| **Nhược điểm** | Có thể sai dấu tiếng Việt, tốn API call | Không có hình minh họa AI, chỉ dùng emoji |
+| **Phù hợp** | Poster quảng cáo, social media có hình vẽ | Menu, danh sách, timeline, cẩm nang text-heavy |
+
+**Quy tắc chọn**: Nếu nội dung chủ yếu là **text tiếng Việt** (menu, danh sách, hướng dẫn) → dùng `--mode html`. Nếu cần **hình minh họa AI** → dùng mode mặc định.
+
+### Lệnh thực thi
+
+```bash
+# Từ JSON inline
+node skills/infographic-generator/image-generator.js --mode html '<JSON>' output.png
+
+# Từ file JSON
+node skills/infographic-generator/image-generator.js --mode html data.json output.png
+```
+
+Nếu có `puppeteer`, script tự render PNG. Nếu không có, script lưu file `.html` — gửi đường dẫn HTML cho người dùng.
+
+### Mẫu JSON cho từng template
+
+#### food-guide — Menu / cẩm nang ẩm thực
+
+```json
+{
+  "template": "food-guide",
+  "color": "warm",
+  "flag": "🇻🇳",
+  "title": "ẨM THỰC",
+  "titleAccent": "VIỆT NAM",
+  "subtitle": "Khám phá hương vị đặc trưng",
+  "categories": ["Miền Bắc", "Miền Trung", "Miền Nam"],
+  "items": [
+    {"name": "Phở Hà Nội", "emoji": "🍜", "origin": "Hà Nội", "description": "Nước dùng thanh, bánh phở mỏng", "price": "45.000đ"},
+    {"name": "Bún Bò Huế", "emoji": "🍲", "origin": "Huế", "description": "Cay nồng, sả, mắm ruốc", "price": "50.000đ"}
+  ],
+  "footer": "designed by OpenClaw"
+}
+```
+
+#### list-cards — Danh sách có đánh số
+
+```json
+{
+  "template": "list-cards",
+  "color": "pastel",
+  "title": "10 MẸO TIẾT KIỆM",
+  "subtitle": "Áp dụng ngay hôm nay",
+  "items": [
+    {"name": "Lập ngân sách hàng tháng", "emoji": "📊", "description": "Ghi chép thu chi rõ ràng"},
+    {"name": "Nấu ăn tại nhà", "emoji": "🏠", "description": "Giảm 50% chi phí ăn uống"}
+  ],
+  "footer": "© 2026"
+}
+```
+
+#### grid — Lưới ô vuông
+
+```json
+{
+  "template": "grid",
+  "color": "bold",
+  "columns": 3,
+  "title": "9 KỸ NĂNG MỀM",
+  "subtitle": "Cần thiết cho năm 2026",
+  "items": [
+    {"name": "Giao tiếp", "emoji": "🗣️", "description": "Truyền đạt ý tưởng hiệu quả"},
+    {"name": "Tư duy phản biện", "emoji": "🧠"},
+    {"name": "Quản lý thời gian", "emoji": "⏰"}
+  ]
+}
+```
+
+#### timeline — Dòng thời gian
+
+```json
+{
+  "template": "timeline",
+  "color": "cool",
+  "title": "LỊCH SỬ VIỆT NAM",
+  "subtitle": "Các mốc quan trọng",
+  "items": [
+    {"name": "Văn Lang", "emoji": "🏛️", "description": "Nhà nước đầu tiên của người Việt"},
+    {"name": "Đại Việt", "emoji": "⚔️", "description": "Thời kỳ độc lập tự chủ"}
+  ]
+}
+```
+
+### Palettes có sẵn
+
+| Palette | Phù hợp |
+|---|---|
+| `warm` | Ẩm thực, du lịch, lifestyle |
+| `cool` | Công nghệ, giáo dục, lịch sử |
+| `pastel` | Tips, hướng dẫn, sức khỏe |
+| `bold` | Social media, trẻ trung, nổi bật |
+
+---
+
+## 📝 7. MẪU PROMPT CHUNG CHO BOT LLM (TÙY CHỈNH THEO YÊU CẦU)
 
 ### Công thức Prompt Tiếng Anh (Khuyên Dùng cho API)
 
