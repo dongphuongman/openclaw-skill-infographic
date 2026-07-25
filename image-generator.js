@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
 
 const prompt = process.argv[2];
 const outputPath = process.argv[3] || 'image.png';
@@ -88,6 +89,84 @@ const modelPriorityPatterns = [
     /comfyui/i,
 ];
 
+// --- R2 Upload (optional, env-toggled) ---
+
+function s3Hmac(key, data) {
+    return crypto.createHmac('sha256', key).update(data).digest();
+}
+
+function s3Hash(data) {
+    return crypto.createHash('sha256').update(data).digest('hex');
+}
+
+async function uploadToR2(filePath, fileName) {
+    const accessKeyId = process.env.R2_ACCESS_KEY_ID;
+    const secretKey = process.env.R2_SECRET_ACCESS_KEY;
+    const accountId = process.env.R2_ACCOUNT_ID;
+    const bucket = process.env.R2_BUCKET;
+    const publicUrl = (process.env.R2_PUBLIC_URL || '').replace(/\/$/, '');
+
+    if (!accessKeyId || !secretKey || !accountId || !bucket || !publicUrl) {
+        throw new Error('Missing R2 config (need R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_ACCOUNT_ID, R2_BUCKET, R2_PUBLIC_URL)');
+    }
+
+    const body = fs.readFileSync(filePath);
+    const host = `${accountId}.r2.cloudflarestorage.com`;
+    const region = 'auto';
+    const service = 's3';
+    const safeName = fileName.replace(/[^a-zA-Z0-9._-]/g, '_');
+    const objectKey = `infographic/${Date.now()}-${safeName}`;
+    const canonicalUri = `/${bucket}/${objectKey}`;
+    const contentType = 'image/png';
+
+    const now = new Date();
+    const amzDate = now.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+    const dateStamp = amzDate.slice(0, 8);
+    const payloadHash = s3Hash(body);
+
+    const canonicalHeaders =
+        `content-type:${contentType}\n` +
+        `host:${host}\n` +
+        `x-amz-content-sha256:${payloadHash}\n` +
+        `x-amz-date:${amzDate}\n`;
+    const signedHeaders = 'content-type;host;x-amz-content-sha256;x-amz-date';
+
+    const canonicalRequest = [
+        'PUT', canonicalUri, '', canonicalHeaders, signedHeaders, payloadHash
+    ].join('\n');
+
+    const credentialScope = `${dateStamp}/${region}/${service}/aws4_request`;
+    const stringToSign = [
+        'AWS4-HMAC-SHA256', amzDate, credentialScope, s3Hash(canonicalRequest)
+    ].join('\n');
+
+    let signingKey = s3Hmac('AWS4' + secretKey, dateStamp);
+    signingKey = s3Hmac(signingKey, region);
+    signingKey = s3Hmac(signingKey, service);
+    signingKey = s3Hmac(signingKey, 'aws4_request');
+    const signature = crypto.createHmac('sha256', signingKey).update(stringToSign).digest('hex');
+
+    const authorization = `AWS4-HMAC-SHA256 Credential=${accessKeyId}/${credentialScope}, SignedHeaders=${signedHeaders}, Signature=${signature}`;
+
+    const res = await fetch(`https://${host}${canonicalUri}`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': contentType,
+            'x-amz-content-sha256': payloadHash,
+            'x-amz-date': amzDate,
+            'Authorization': authorization,
+        },
+        body: body,
+    });
+
+    if (!res.ok) {
+        const text = await res.text();
+        throw new Error(`R2 ${res.status}: ${text.slice(0, 200)}`);
+    }
+
+    return `${publicUrl}/${objectKey}`;
+}
+
 (async () => {
     try {
         // Query active image generation models to choose the best one
@@ -146,7 +225,17 @@ const modelPriorityPatterns = [
             const buf = Buffer.from(data.data[0].b64_json, 'base64');
             const absoluteOutputPath = path.isAbsolute(outputPath) ? outputPath : path.join(process.cwd(), outputPath);
             fs.writeFileSync(absoluteOutputPath, buf);
-            console.log(`[ImageGen] Saved image to: ${outputPath}`);
+            console.log(`[ImageGen] Saved image to: ${absoluteOutputPath}`);
+
+            // R2 upload (opt-in, graceful degradation)
+            if (process.env.R2_UPLOAD_ENABLED === 'true') {
+                try {
+                    const publicUrl = await uploadToR2(absoluteOutputPath, path.basename(outputPath));
+                    console.log(`[ImageGen] Public URL: ${publicUrl}`);
+                } catch (uploadErr) {
+                    console.warn(`[ImageGen] R2 upload failed (image saved locally): ${uploadErr.message}`);
+                }
+            }
         } else {
             console.error('[ImageGen] No image data returned');
             process.exit(1);

@@ -21,10 +21,23 @@ Khi người dùng yêu cầu tạo ảnh infographic, tin tức, cẩm nang, ho
 
 ## 🚀 1. LỆNH THỰC THI
 
-Để tạo ảnh, hãy gọi tool `exec` để chạy lệnh:
+### Bước 1: Sinh ảnh
+Gọi tool `exec` để chạy lệnh:
 `node skills/infographic-generator/image-generator.js "<prompt chi tiết bằng tiếng Anh>" <tên_ảnh>.png`
 
 _(Ví dụ: `node skills/infographic-generator/image-generator.js "A professional grid infographic..." output.png`)_
+
+### Bước 2: Gửi ảnh vào chat (BẮT BUỘC)
+Ngay sau khi script chạy thành công và in ra `[ImageGen] Saved image to: <path>`, bạn **phải** gọi tool `message` để gửi ảnh vào cuộc trò chuyện:
+
+```
+message(action="send", media="<đường dẫn tuyệt đối tới file PNG>")
+```
+
+Nếu script in ra đường dẫn tương đối (ví dụ `output.png`), hãy ghép với thư mục làm việc hiện tại để có đường dẫn tuyệt đối trước khi gọi `message`.
+
+> [!IMPORTANT]
+> **Không được bỏ qua bước gửi ảnh.** Nếu chỉ chạy script mà không gọi `message`, người dùng sẽ không thấy ảnh trong chat.
 
 ---
 
